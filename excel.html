@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export XLSX</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <button id="exportBtn">导出</button>
+
+    <script>
+        // 数据示例
+        const dataColum = 
+        {
+            title:'数据示例',
+            header:{name:'姓名',gender:'性别',age:'年龄'},
+            data:
+            [
+                {name:'张三',gender:'男',age:'18',city:'上海'},
+                {name:'赵四',gender:'女',age:null,city:'北京'},
+                {name:'张五',gender:'男',age:'20',city:'北京'},
+            ]
+        }
+
+        // 导出函数
+        function exportToXlsx(dataColum, fileName = 'export.xlsx') {
+
+            //创建表头
+            const header = []
+            for(let value of Object.values(dataColum.header)){
+                header.push(value)
+            }
+
+            //获取表头key
+            const headerKeys = Object.keys(dataColum.header)
+            
+            // 将数据转换为二维数组，确保顺序与表头一致
+            let excelData = []
+
+            dataColum.data.forEach(item => {
+                const row = []
+                headerKeys.forEach(key => {
+                    row.push(item[key])
+                })
+                excelData.push(row)
+            })
+
+            // 将自定义表头和数据合并
+            const aoa = [header, ...excelData];
+
+            // 创建工作表
+            const worksheet = XLSX.utils.aoa_to_sheet(aoa);
+
+            // 创建工作簿
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+            // 生成二进制文件
+            const fileContent = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+            // 创建 Blob 对象
+            const blob = new Blob([fileContent], { type: 'application/octet-stream' });
+
+            // 创建下载链接
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+
+            // 触发下载
+            document.body.appendChild(a);
+            a.click();
+
+            // 清理
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // 绑定按钮点击事件
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            exportToXlsx(dataColum, `${dataColum.title}.xlsx`);
+        });
+
+    </script>
+</body>
+</html>
